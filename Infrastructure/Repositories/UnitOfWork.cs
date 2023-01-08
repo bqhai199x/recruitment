@@ -4,12 +4,11 @@ namespace Recruitment.Infrastructure.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {
-        public UnitOfWork(ICategoryRepository category, IProductRepository product, IOrderRepository order, IOrderDetailRepository orderDetail, ICustomerRepository customer)
+        public UnitOfWork(ICategoryRepository category, IProductRepository product, IOrderRepository order, ICustomerRepository customer)
         {
             Category = category;
             Product = product;
             Order = order;
-            OrderDetail = orderDetail;
             Customer = customer;
         }
 
@@ -18,8 +17,6 @@ namespace Recruitment.Infrastructure.Repositories
         public IProductRepository Product { get; }
 
         public IOrderRepository Order { get; }
-
-        public IOrderDetailRepository OrderDetail { get; }
 
         public ICustomerRepository Customer { get; }
     }

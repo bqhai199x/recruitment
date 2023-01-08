@@ -8,8 +8,6 @@
 
         IOrderRepository Order { get; }
 
-        IOrderDetailRepository OrderDetail { get; }
-
         ICustomerRepository Customer { get; } 
 
     }

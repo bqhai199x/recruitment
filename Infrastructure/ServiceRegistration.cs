@@ -8,7 +8,6 @@ namespace Recruitment.Infrastructure
     {
         public static void AddInfrastructure(this IServiceCollection services)
         {
-            services.AddTransient<IOrderDetailRepository, OrderDetailRepository>();
             services.AddTransient<IOrderRepository, OrderRepository>();
             services.AddTransient<IProductRepository, ProductRepository>();
             services.AddTransient<ICustomerRepository, CustomerRepository>();

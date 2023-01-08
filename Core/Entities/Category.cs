@@ -9,6 +9,5 @@
         public string Description { get; set; } = string.Empty;
 
         public List<Product> ProductList { get; set; } = new();
-
     }
 }

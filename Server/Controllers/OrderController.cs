@@ -3,19 +3,20 @@ using Serilog;
 using Recruitment.Core.Entities;
 using Recruitment.Infrastructure.Interfaces;
 using System.Reflection;
+using Recruitment.Core.Utils;
 
 namespace Recruitment.Server.Controllers
 {
-    public class ProductController : BaseController
+    public class OrderController : BaseController
     {
-        public ProductController(IUnitOfWork unitOfWork) : base(unitOfWork) { }
+        public OrderController(IUnitOfWork unitOfWork) : base(unitOfWork) { }
 
-        [HttpGet("list")]
+        [HttpGet("getall")]
         public async Task<IActionResult> GetProductList()
         {
             try
             {
-                List<Product> orderList = await _unitOfWork.Product.GetAllAsync();
+                List<Order> orderList = await _unitOfWork.Order.GetAllAsync();
                 return Json(orderList);
             }
             catch (Exception ex)
@@ -25,16 +26,18 @@ namespace Recruitment.Server.Controllers
             }
         }
 
-        [HttpGet("get")]
-        public async Task<IActionResult> GetProduct(int id)
+        [HttpGet("list")]
+        public async Task<IActionResult> GetProductList(int pageNumber, int pageSize)
         {
             try
             {
-                Product candidate = await _unitOfWork.Product.GetByIdAsync(id);
-                return Json(candidate);
+                List<Order> orderList = await _unitOfWork.Order.GetAllAsync();
+                PagedList<Order> orderPageList = PagedList<Order>.ToPagedList(orderList, pageNumber, pageSize);
+                return Json(orderList);
             }
             catch (Exception ex)
             {
+                Log.Logger.Error(ex, MethodBase.GetCurrentMethod()?.Name);
                 return StatusCode(500, ex.Message);
             }
         }

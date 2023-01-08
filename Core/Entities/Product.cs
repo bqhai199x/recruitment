@@ -10,6 +10,8 @@
 
         public int Quantity { get; set; } = 0;
 
+        public int CategoryId { get; set; } = 0;
+
         public Category Category { get; set; } = new();
     }
 }
