@@ -1,0 +1,79 @@
+﻿@page "/"
+@inject IOrderService _orderService
+
+<div class="input-group w-25 py-3">
+    <input type="text" class="form-control" @bind-value="CategoryName">
+    <div class="input-group-append">
+        <button class="btn btn-primary" @onclick="Search">
+            Search
+        </button>
+    </div>
+</div>
+
+<!-- List candidate -->
+<table class="table table-bordered">
+    <thead>
+        <tr class="text-center bg-secondary text-white">
+            <th scope="col">Product Name</th>
+            <th scope="col">Category Name</th>
+            <th scope="col">Customer Name</th>
+            <th scope="col">Order Date</th>
+            <th scope="col">Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in OrderPageList)
+        {
+            <tr>
+                <td>@item.Product.Name</td>
+                <td>@item.Product.Category.Name</td>
+                <td>@item.Customer.Name</td>
+                <td>@item.OrderDate.ToString("dd-MMM-yyyy")</td>
+                <td>@item.Amount</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<CreateOrder @bind-Visible="ShowCreateOrder" OnCreate="LoadData"></CreateOrder>
+
+@code {
+    private bool ShowCreateOrder { get; set; } = false;
+
+    private int PageNumber { get; set; } = 1;
+
+    private int PageSize { get; set; } = 6;
+
+    public string CategoryName { get; set; } = string.Empty;
+
+    private PagedList<Order> OrderPageList { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        OrderPageList = await _orderService.List(PageSize, PageNumber, CategoryName);
+    }
+
+    private void Search()
+    {
+        PageNumber = 1;
+        PageSize = 6;
+        OrderPageList = await _orderService.List(PageSize, PageNumber, CategoryName);
+        StateHasChanged();
+    }
+
+    private void CreateOrder()
+    {
+        ShowCreateOrder = true;
+        StateHasChanged();
+    }
+
+    private async Task LoadData()
+    {
+        ShowCreateOrder = false;
+        PageNumber = 1;
+        PageSize = 6;
+        CategoryName = string.Empty;
+        OrderPageList = await _orderService.List(PageSize, PageNumber, CategoryName);
+        StateHasChanged();
+    }
+}

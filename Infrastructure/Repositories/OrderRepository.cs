@@ -37,9 +37,22 @@ namespace Recruitment.Infrastructure.Repositories
             _config = config;
         }
 
-        public Task<int> AddAsync(Order entity)
+        public async Task<int> AddAsync(Order entity)
         {
-            throw new NotImplementedException();
+            using (var connection = new MySqlConnection(_config.GetConnectionString("SqlConnection")))
+            {
+                string sql =
+                    @"Insert Into `Order` (ProductId, CustomerId, OrderDate, Amount) 
+                      Values (@ProductId, @CustomerId, @OrderDate, @Amount)";
+
+                return await connection.ExecuteAsync(sql, new
+                {
+                    ProductId = entity.ProductId,
+                    CustomerId = entity.CustomerId,
+                    OrderDate = entity.OrderDate,
+                    Amount = entity.Amount
+                });
+            }
         }
 
         public Task<int> DeleteAsync(int id)

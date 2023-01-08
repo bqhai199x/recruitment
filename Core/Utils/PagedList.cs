@@ -8,11 +8,13 @@ namespace Recruitment.Core.Utils
 {
     public class PagedList<T> : List<T>
     {
+        public PagedList() { }
+
         public int CurrentPage { get; private set; } = 0;
 
         public int TotalPages { get; private set; } = 0;
 
-        public int PageSize { get; private set; } = 0; 
+        public int PageSize { get; private set; } = 0;
 
         public int TotalCount { get; private set; } = 0;
 

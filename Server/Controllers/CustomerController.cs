@@ -6,17 +6,17 @@ using System.Reflection;
 
 namespace Recruitment.Server.Controllers
 {
-    public class ProductController : BaseController
+    public class CustomerController : BaseController
     {
-        public ProductController(IUnitOfWork unitOfWork) : base(unitOfWork) { }
+        public CustomerController(IUnitOfWork unitOfWork) : base(unitOfWork) { }
 
         [HttpGet("list")]
-        public async Task<IActionResult> GetProductList()
+        public async Task<IActionResult> GetCustomerList()
         {
             try
             {
-                List<Product> productist = await _unitOfWork.Product.GetAllAsync();
-                return Json(productist);
+                List<Customer> customerList = await _unitOfWork.Customer.GetAllAsync();
+                return Json(customerList);
             }
             catch (Exception ex)
             {

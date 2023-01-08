@@ -1,0 +1,37 @@
+﻿@inject IProductService _productService
+@inject ICustomerService _customerService
+@inject IOrderService _orderService
+
+@code {
+    [Parameter]
+    public bool Visible { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<bool> VisibleChanged { get; set; }
+
+    public Order Order { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnCreate { get; set; }
+
+    private List<Product> ProductList { get; set; } = new();
+
+    private List<Customer> CustomerList { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        ProductList = await _productService.GetAll();
+        CustomerList = await _customerService.GetAll();
+    }
+
+    protected override void OnParametersSet()
+    {
+        Order = new();
+    }
+
+    private async Task Create()
+    {
+        await _orderService.Create(Order);
+        if (OnCreate.HasDelegate) await OnCreate.InvokeAsync();
+    }
+}

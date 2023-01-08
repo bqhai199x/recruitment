@@ -11,12 +11,17 @@ namespace Recruitment.Server.Controllers
     {
         public OrderController(IUnitOfWork unitOfWork) : base(unitOfWork) { }
 
-        [HttpGet("getall")]
-        public async Task<IActionResult> GetProductList()
+        [HttpGet("list")]
+        public async Task<IActionResult> GetOrderList(int pageNumber, int pageSize, string categoryName)
         {
             try
             {
                 List<Order> orderList = await _unitOfWork.Order.GetAllAsync();
+                if (!string.IsNullOrEmpty(categoryName))
+                {
+                    orderList = orderList.Where(x => x.Product.Category.Name.Contains(categoryName)).ToList();
+                }
+                PagedList<Order> orderPageList = PagedList<Order>.ToPagedList(orderList, pageNumber, pageSize);
                 return Json(orderList);
             }
             catch (Exception ex)
@@ -26,14 +31,13 @@ namespace Recruitment.Server.Controllers
             }
         }
 
-        [HttpGet("list")]
-        public async Task<IActionResult> GetProductList(int pageNumber, int pageSize)
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateOrder(Order order)
         {
             try
             {
-                List<Order> orderList = await _unitOfWork.Order.GetAllAsync();
-                PagedList<Order> orderPageList = PagedList<Order>.ToPagedList(orderList, pageNumber, pageSize);
-                return Json(orderList);
+                int result = await _unitOfWork.Order.AddAsync(order);
+                return Json(result > 0);
             }
             catch (Exception ex)
             {

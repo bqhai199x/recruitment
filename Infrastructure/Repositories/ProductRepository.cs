@@ -29,15 +29,9 @@ namespace Recruitment.Infrastructure.Repositories
         {
             using (var connection = new MySqlConnection(_config.GetConnectionString("SqlConnection")))
             {
-                string sql =
-                    @"Select * From Product prod 
-                      Inner Join Category cate On prod.CategoryId = cate.Id;";
+                string sql = "Select * From Product";
 
-                var productList = await connection.QueryAsync<Product, Category, Product>(sql, (pro, cate) =>
-                {
-                    pro.Category = cate;
-                    return pro;
-                }, splitOn: "Id, Id");
+                var productList = await connection.QueryAsync<Product>(sql);
 
                 return productList.ToList();
             }
