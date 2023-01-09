@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Recruitment.Infrastructure;
 using Serilog;
 using Serilog.Events;
@@ -10,6 +12,20 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddInfrastructure();
 builder.Services.AddControllers(options => options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+	options.TokenValidationParameters = new TokenValidationParameters
+	{
+		ValidateAudience = true,
+		ValidAudience = "domain.com",
+		ValidateIssuer = true,
+		ValidIssuer = "domain.com",
+		ValidateLifetime = true,
+		ValidateIssuerSigningKey = true,
+		IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("haibq1011"))
+	};
+});
 
 var app = builder.Build();
 
@@ -30,7 +46,11 @@ app.UseHttpsRedirection();
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
+app.UseAuthentication();
+
 app.UseRouting();
+
+app.UseAuthorization();
 
 app.UseCors(x => x
     .AllowAnyMethod()

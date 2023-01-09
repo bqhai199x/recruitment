@@ -1,43 +1,53 @@
 ﻿@page "/"
 @inject IOrderService _orderService
+@inject IJSRuntime jsr
 
-<div class="input-group w-25 py-3">
-    <input type="text" class="form-control" @bind-value="CategoryName">
-    <div class="input-group-append">
-        <button class="btn btn-primary" @onclick="Search">
-            Search
-        </button>
+<User></User>
+
+@if (string.IsNullOrEmpty(UserData))
+{
+    <p><a href="/login">LOGIN TO ACCESS THIS DATA</a></p>
+}
+else
+{
+    <div class="input-group w-25 py-3">
+        <input type="text" class="form-control" @bind-value="CategoryName">
+        <div class="input-group-append">
+            <button class="btn btn-primary" @onclick="Search">
+                Search
+            </button>
+        </div>
     </div>
-</div>
 
-<!-- List candidate -->
-<table class="table table-bordered">
-    <thead>
-        <tr class="text-center bg-secondary text-white">
-            <th scope="col">Product Name</th>
-            <th scope="col">Category Name</th>
-            <th scope="col">Customer Name</th>
-            <th scope="col">Order Date</th>
-            <th scope="col">Amount</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in OrderPageList.Items)
-        {
-            <tr>
-                <td>@item.Product.Name</td>
-                <td>@item.Product.Category.Name</td>
-                <td>@item.Customer.Name</td>
-                <td>@item.OrderDate.ToString("dd-MMM-yyyy")</td>
-                <td>@item.Amount</td>
+    <!-- List candidate -->
+    <table class="table table-bordered">
+        <thead>
+            <tr class="text-center bg-secondary text-white">
+                <th scope="col">Product Name</th>
+                <th scope="col">Category Name</th>
+                <th scope="col">Customer Name</th>
+                <th scope="col">Order Date</th>
+                <th scope="col">Amount</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in OrderPageList.Items)
+            {
+                <tr>
+                    <td>@item.Product.Name</td>
+                    <td>@item.Product.Category.Name</td>
+                    <td>@item.Customer.Name</td>
+                    <td>@item.OrderDate.ToString("dd-MMM-yyyy")</td>
+                    <td>@item.Amount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
 
-<PageLink MetaData="OrderPageList.MetaData" OnPageChanged="OnChangePaged"></PageLink>
+    <PageLink MetaData="OrderPageList.MetaData" OnPageChanged="OnChangePaged"></PageLink>
 
-<CreateOrder OnCreate="LoadData"></CreateOrder>
+    <CreateOrder OnCreate="LoadData"></CreateOrder>
+}
 
 @code {
     private int PageNumber { get; set; } = 1;
@@ -45,6 +55,8 @@
     private int PageSize { get; set; } = 6;
 
     public string CategoryName { get; set; } = string.Empty;
+
+    private string UserData { get; set; } = string.Empty;
 
     private PagingResponse<Order> OrderPageList { get; set; } = new();
 
@@ -76,4 +88,16 @@
         OrderPageList = await _orderService.List(PageSize, PageNumber, CategoryName);
         StateHasChanged();
     }
+
+    private async Task<string> GetJWT()
+	{
+		UserData = await jsr.InvokeAsync<string>("localStorage.getItem", "user").ConfigureAwait(false);
+		if (!string.IsNullOrWhiteSpace(UserData))
+		{
+			var dataArray = UserData.Split(';', 2);
+			if (dataArray.Length == 2)
+				return dataArray[1];
+		}
+		return null;
+	}
 }
