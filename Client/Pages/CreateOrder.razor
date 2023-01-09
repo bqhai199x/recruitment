@@ -2,8 +2,65 @@
 @inject ICustomerService _customerService
 @inject IOrderService _orderService
 
+<button class="btn btn-outline-secondary float-end" @onclick="Show">Create New Order</button>
+
+<div class="modal fade show @(Visible ? "d-block" : "")" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Order</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="Hide">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="orderName">Order Name</label>
+                    <input type="text" class="form-control" id="orderName" />
+                </div>
+                <div class="form-group mt-3">
+                    <label for="product">Product</label>
+                    <select class="form-control form-select" @bind="Order.ProductId" id="product">
+                        <option value="0" hidden></option>
+                        @foreach (var item in ProductList)
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group mt-3">
+                    <label for="customer">Customer</label>
+                    <select class="form-control form-select" @bind="Order.CustomerId" id="customer">
+                        <option value="0" hidden></option>
+                        @foreach (var item in CustomerList)
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group mt-3">
+                    <label for="orderDate">Order Date</label>
+                    <input type="date" class="form-control" id="orderDate" @bind-value="Order.OrderDate" />
+                </div>
+                <div class="form-group mt-3">
+                    <label for="amount">Amount</label>
+                    <input type="number" class="form-control" id="amount" @bind-value="Order.Amount" />
+                </div>
+                @if (!string.IsNullOrEmpty(ErrMessage))
+                {
+                    <div class="alert alert-danger mt-3" role="alert">
+                        @ErrMessage
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" @onclick="Create">Create Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @code {
-    [Parameter]
     public bool Visible { get; set; } = false;
 
     [Parameter]
@@ -18,20 +75,58 @@
 
     private List<Customer> CustomerList { get; set; } = new();
 
+    public string ErrMessage { get; set; } = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         ProductList = await _productService.GetAll();
         CustomerList = await _customerService.GetAll();
     }
 
-    protected override void OnParametersSet()
-    {
-        Order = new();
-    }
-
     private async Task Create()
     {
-        await _orderService.Create(Order);
+        if (Order.ProductId == 0)
+        {
+            ErrMessage = "Please choose a product";
+            return;
+        }
+        if (Order.CustomerId == 0)
+        {
+            ErrMessage = "Please choose a customer";
+            return;
+        }
+        if (Order.Amount == 0)
+        {
+            ErrMessage = "Please enter amount";
+            return;
+        }
+        Product product = ProductList.Single(x => x.Id == Order.ProductId);
+        if (Order.Amount > product.Quantity)
+        {
+            ErrMessage = "The number of products is larger than available";
+            return;
+        }
+        bool result = await _orderService.Create(Order);
+        if (!result)
+        {
+            ErrMessage = "Order failed";
+            return;
+        }
+        Visible = false;
         if (OnCreate.HasDelegate) await OnCreate.InvokeAsync();
+    }
+
+    private void Show()
+    {
+        ErrMessage = string.Empty;
+        Visible = true;
+        Order = new();
+        StateHasChanged();
+    }
+
+    private void Hide()
+    {
+        Visible = false;
+        StateHasChanged();
     }
 }

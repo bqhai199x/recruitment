@@ -1,0 +1,55 @@
+﻿<nav aria-label="Page navigation example">
+    <ul class="pagination">
+        <li class="page-item @(MetaData.CurrentPage == 1 || MetaData.TotalPages == 0 ? "disabled" : "")" @onclick="() => OnPageChange(1)">
+            <a class="page-link" href="#" aria-label="First">
+                <span aria-hidden="true">&laquo;</span>
+                <span class="sr-only">First</span>
+            </a>
+        </li>
+        <li class="page-item @(MetaData.HasPrevious ? "" : "disabled")" @onclick="() => OnPageChange(MetaData.CurrentPage - 1)">
+            <a class="page-link" href="#" aria-label="Previous">
+                <span aria-hidden="true">&lsaquo;</span>
+                <span class="sr-only">Previous</span>
+            </a>
+        </li>
+        @for (int i = 1; i <= MetaData.TotalPages; i++)
+        {
+            var pageIndex = i;
+            <li class="page-item @(MetaData.CurrentPage == pageIndex ? "active" : "")" @onclick="() => OnPageChange(pageIndex)">
+                <a class="page-link" href="javascript:;">@pageIndex</a>
+            </li>
+        }
+        <li class="page-item @(MetaData.HasNext ? "" : "disabled")" @onclick="() => OnPageChange(MetaData.CurrentPage + 1)">
+            <a class="page-link" href="#" aria-label="Next">
+                <span aria-hidden="true">&rsaquo;</span>
+                <span class="sr-only">Next</span>
+            </a>
+        </li>
+        <li class="page-item @(MetaData.CurrentPage == MetaData.TotalPages || MetaData.TotalPages == 0 ? "disabled" : "")" @onclick="() => OnPageChange(MetaData.TotalPages)">
+            <a class="page-link" href="#" aria-label="Last">
+                <span aria-hidden="true">&raquo;</span>
+                <span class="sr-only">Last</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<style>
+    .disabled {
+        pointer-events: none;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public MetaData MetaData { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<int> OnPageChanged { get; set; }
+
+    private async Task OnPageChange(int pageNumber)
+    {
+        if (OnPageChanged.HasDelegate) await OnPageChanged.InvokeAsync(pageNumber);
+        StateHasChanged();
+    }
+}

@@ -1,14 +1,16 @@
 ﻿using Recruitment.Core.Entities;
 using Recruitment.Core.Utils;
+using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Recruitment.Client.Services
 {
     public interface IOrderService
     {
-        Task<PagedList<Order>> List(int pageSize, int pageNumber, string categoryName);
+        Task<PagingResponse<Order>> List(int pageSize, int pageNumber, string categoryName);
 
-        Task Create(Order order);
+        Task<bool> Create(Order order);
     }
 
     public class OrderService : IOrderService
@@ -20,14 +22,33 @@ namespace Recruitment.Client.Services
             _httpClient = httpClient;
         }
 
-        public async Task<PagedList<Order>> List(int pageSize, int pageNumber, string categoryName)
+        public async Task<PagingResponse<Order>> List(int pageSize, int pageNumber, string categoryName)
         {
-            return await _httpClient.GetFromJsonAsync<PagedList<Order>>($"api/order/list?pageNumber={pageNumber}&pageSize={pageSize}&categoryName={categoryName}") ?? new();
+            var queryParameters = new Dictionary<string, string>
+            {
+                { "pageSize", $"{pageSize}" },
+                { "pageNumber", $"{pageNumber}"},
+                { "categoryName", categoryName}
+            };
+            var dictFormUrlEncoded = new FormUrlEncodedContent(queryParameters);
+            var queryString = await dictFormUrlEncoded.ReadAsStringAsync();
+
+            var response = await _httpClient.GetAsync($"api/order/list?{queryString}");
+            var content = await response.Content.ReadAsStringAsync();
+            var pagingResponse = new PagingResponse<Order>
+            {
+                Items = JsonSerializer.Deserialize<List<Order>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new(),
+                MetaData = JsonSerializer.Deserialize<MetaData>(response.Headers.GetValues("X-Pagination").First(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new()
+            };
+            return pagingResponse;
         }
 
-        public async Task Create(Order order)
+        public async Task<bool> Create(Order order)
         {
-            await _httpClient.PostAsJsonAsync<Order>("api/order/create", order);
+            var response = await _httpClient.PostAsJsonAsync<Order>("api/order/create", order);
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.StatusCode != HttpStatusCode.OK) return false;
+            return content == "true";
         }
     }
 }

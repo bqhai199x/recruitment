@@ -22,7 +22,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in OrderPageList)
+        @foreach (var item in OrderPageList.Items)
         {
             <tr>
                 <td>@item.Product.Name</td>
@@ -35,25 +35,25 @@
     </tbody>
 </table>
 
-<CreateOrder @bind-Visible="ShowCreateOrder" OnCreate="LoadData"></CreateOrder>
+<PageLink MetaData="OrderPageList.MetaData" OnPageChanged="OnChangePaged"></PageLink>
+
+<CreateOrder OnCreate="LoadData"></CreateOrder>
 
 @code {
-    private bool ShowCreateOrder { get; set; } = false;
-
     private int PageNumber { get; set; } = 1;
 
     private int PageSize { get; set; } = 6;
 
     public string CategoryName { get; set; } = string.Empty;
 
-    private PagedList<Order> OrderPageList { get; set; } = new();
+    private PagingResponse<Order> OrderPageList { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
         OrderPageList = await _orderService.List(PageSize, PageNumber, CategoryName);
     }
 
-    private void Search()
+    private async Task Search()
     {
         PageNumber = 1;
         PageSize = 6;
@@ -61,18 +61,18 @@
         StateHasChanged();
     }
 
-    private void CreateOrder()
-    {
-        ShowCreateOrder = true;
-        StateHasChanged();
-    }
-
     private async Task LoadData()
     {
-        ShowCreateOrder = false;
         PageNumber = 1;
         PageSize = 6;
         CategoryName = string.Empty;
+        OrderPageList = await _orderService.List(PageSize, PageNumber, CategoryName);
+        StateHasChanged();
+    }
+
+    private async Task OnChangePaged(int pageNumber)
+    {
+        PageNumber = pageNumber;
         OrderPageList = await _orderService.List(PageSize, PageNumber, CategoryName);
         StateHasChanged();
     }
